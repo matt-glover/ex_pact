@@ -1,18 +1,3 @@
 defmodule ExPact do
-  @moduledoc """
-  Documentation for ExPact.
-  """
-
-  @doc """
-  Hello world.
-
-  ## Examples
-
-      iex> ExPact.hello()
-      :world
-
-  """
-  def hello do
-    :world
-  end
+  # TODO: Consider leveraging https://hexdocs.pm/ex_unit/ExUnit.CaseTemplate.html for client tests?
 end

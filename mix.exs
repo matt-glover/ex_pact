@@ -27,6 +27,8 @@ defmodule ExPact.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
+      {:jason, "~> 1.1"},
+      {:httpoison, "~> 1.2"},
       {:ex_doc, ">= 0.0.0", only: :dev}
     ]
   end
