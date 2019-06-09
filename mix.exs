@@ -29,6 +29,7 @@ defmodule ExPact.MixProject do
     [
       {:jason, "~> 1.1"},
       {:httpoison, "~> 1.2"},
+      {:bypass, "~> 1.0"},
       {:ex_doc, ">= 0.0.0", only: :dev}
     ]
   end

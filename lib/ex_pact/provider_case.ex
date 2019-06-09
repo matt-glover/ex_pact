@@ -15,6 +15,7 @@ defmodule ExPact.ProviderCase do
         interaction["provider_state"]
       end)
       |> Enum.uniq()
+
     # TODO: Convert states into setup blocks grouped under the consumer app
 
     test_cases =
@@ -27,7 +28,7 @@ defmodule ExPact.ProviderCase do
         }
       end)
 
-      # TODO: Switch this all to a map of provider_state -> list of test blobs to generate appropriate describes per state
+    # TODO: Switch this all to a map of provider_state -> list of test blobs to generate appropriate describes per state
     quote do
       describe "Verifying a pact between #{unquote(consumer_app)} and #{unquote(provider_app)}" do
         unquote(generate_tests(test_cases))
@@ -56,30 +57,34 @@ defmodule ExPact.ProviderCase do
               "get" -> HTTPoison.get(request_url)
             end
 
-          # TODO: check against all the possible response bits
-          # defstruct status_code: nil, body: nil, headers: [], request_url: nil
+          assert {:ok, http_response = %HTTPoison.Response{}} = actual_response
 
-          # TODO: Note: Need to consider swapping in String.to_existing_atom(string) or find a different way to handle this
-          # TODO: That still allows consumers to provide more or less arbitrary headers
+          assert expected_response["status"] == http_response.status_code
+
           expected_headers =
             Enum.map(expected_response["headers"], fn {key, value} ->
-              {String.to_existing_atom(key), value}
+              {String.downcase(key), value}
             end)
+
+          Enum.each(expected_headers, fn expected ->
+            assert Enum.member?(http_response.headers, expected)
+          end)
 
           expected_body =
             case expected_response["body"] do
-              content when is_binary(content) -> content
-              content when is_map(content) -> content
-              nil -> nil
-            end
+              expected_content when is_binary(expected_content) ->
+                assert expected_content == http_response.body
 
-          assert {:ok,
-                  %HTTPoison.Response{
-                    status_code: expected_response["status"],
-                    headers: expected_headers,
-                    body: expected_body
-                  }} ==
-                   actual_response
+              expected_content when is_map(expected_content) ->
+                assert {:ok, parsed_json} = Jason.decode(http_response.body)
+
+                expected = MapSet.new(expected_content)
+                actual = MapSet.new(parsed_json)
+                assert MapSet.subset?(expected, actual)
+
+              nil ->
+                nil
+            end
         end
       end
     end
