@@ -3,6 +3,8 @@ defmodule ExPact.ProviderCase do
   Generate test cases for a pact Provider.
   """
 
+  require ExUnit.Assertions
+
   defmacro honours_pact_with(provider_app, consumer_app, pact_uri) do
     parsed =
       File.read!(pact_uri)
@@ -77,7 +79,13 @@ defmodule ExPact.ProviderCase do
             end)
 
           Enum.each(expected_headers, fn expected ->
-            assert Enum.member?(http_response.headers, expected)
+            case expected do
+              {"content-type", header_data} ->
+                match_content_type(header_data, http_response.headers)
+
+              _ ->
+                assert Enum.member?(http_response.headers, expected)
+            end
           end)
 
           expected_body =
@@ -100,6 +108,25 @@ defmodule ExPact.ProviderCase do
     end
   end
 
+  def match_content_type(expected_content_type, actual_headers) do
+    {base_expected_type, expected_parameters} = normalize_content_type(expected_content_type)
+
+    # TODO: Clean this up and put targeted testing around it.
+    matches =
+      actual_headers
+      |> Enum.filter(fn {key, _value} -> key == "content-type" end)
+      |> Enum.map(fn {_key, value} -> normalize_content_type(value) end)
+      |> Enum.filter(fn {base_actual_type, _} -> base_expected_type == base_actual_type end)
+      |> Enum.any?(fn {_, actual_params} ->
+        Enum.all?(expected_parameters, fn expected -> Enum.member?(actual_params, expected) end)
+      end)
+
+    ExUnit.Assertions.assert(
+      matches,
+      ~s(Expected #{inspect(actual_headers)} to include {"content-type", "#{expected_content_type}"})
+    )
+  end
+
   defp build_test_description(base_description, pact_request) do
     full_url = build_url(pact_request)
     full_request = "#{String.upcase(pact_request["method"])} #{full_url}"
@@ -114,5 +141,15 @@ defmodule ExPact.ProviderCase do
       end
 
     "#{pact_request["path"]}#{query_component}"
+  end
+
+  defp normalize_content_type(value) do
+    {[base_type], parameters} =
+      value
+      |> String.split(";", trim: true)
+      |> Enum.map(&String.trim/1)
+      |> Enum.split(1)
+
+    {base_type, parameters}
   end
 end
