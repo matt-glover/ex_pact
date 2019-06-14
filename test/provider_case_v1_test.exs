@@ -1,4 +1,4 @@
-defmodule ProviderCaseTest do
+defmodule ProviderCaseV1Test do
   use ExUnit.Case, async: true
   import ExPact.ProviderCase
 
