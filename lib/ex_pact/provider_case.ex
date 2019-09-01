@@ -106,9 +106,21 @@ defmodule ExPact.ProviderCase do
               expected_content when is_map(expected_content) ->
                 assert {:ok, parsed_json} = Jason.decode(http_response.body)
 
+                # TODO: Deal with deep nesting of maps and lists
                 expected = MapSet.new(expected_content)
                 actual = MapSet.new(parsed_json)
                 assert MapSet.subset?(expected, actual)
+
+              expected_content when is_list(expected_content) ->
+                assert {:ok, parsed_json} = Jason.decode(http_response.body)
+
+                # TODO: Deal with deep nesting of maps and lists
+                # TODO: Also deal with matcher rules overriding exact body match
+                expected_content
+                |> Enum.with_index()
+                |> Enum.each(fn {expected, index} ->
+                  assert expected == Enum.at(parsed_json, index)
+                end)
 
               nil ->
                 nil

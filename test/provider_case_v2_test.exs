@@ -19,8 +19,22 @@ defmodule ProviderCaseV2Test do
   defp mock_webserver(bypass) do
     Bypass.stub(bypass, "GET", "/idm/user", fn conn ->
       conn
-      |> Plug.Conn.resp(200, ~s("That is some good Mallory."))
-      |> Plug.Conn.put_resp_content_type("application/json")
+      |> Plug.Conn.resp(
+        200,
+        Jason.encode!([
+          %{
+            id: "95d0371b-bf30-4943-90a8-8bb1967c4cb2",
+            userName: "GIUlVKoiLdHLYNKGbcSy",
+            email: "DPvAfkCZpOBZWzKYiDMC"
+          },
+          %{
+            id: "eb0f8c17-c06a-479e-9204-14f7c95b63a6",
+            email: "rddtGwwWMEhnkAPEmsyE",
+            userName: "AJQrokEGPAVdOHprQpKP"
+          }
+        ])
+      )
+      |> Plug.Conn.put_resp_content_type("application/json; charset=UTF-8")
     end)
   end
 end
