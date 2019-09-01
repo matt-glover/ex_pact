@@ -5,6 +5,16 @@ defmodule ExPact.ProviderCase do
 
   require ExUnit.Assertions
 
+  defmacro __using__(opts) do
+    quote do
+      options = unquote(opts)
+      port = Keyword.get(options, :port, 1234)
+      @ex_pact_port port
+
+      import ExPact.ProviderCase
+    end
+  end
+
   defmacro honours_pact_with(provider_app, consumer_app, pact_uri) do
     parsed =
       File.read!(pact_uri)
@@ -61,7 +71,7 @@ defmodule ExPact.ProviderCase do
           IO.write("Response: ")
           IO.inspect(expected_response)
 
-          request_url = "http://localhost:1234#{unquote(build_url(pact_request))}"
+          request_url = "http://localhost:#{@ex_pact_port}#{unquote(build_url(pact_request))}"
 
           # TODO: Non-GET options. Ability to submit body
           actual_response =

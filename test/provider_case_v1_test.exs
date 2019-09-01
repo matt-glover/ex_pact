@@ -1,6 +1,6 @@
 defmodule ProviderCaseV1Test do
   use ExUnit.Case, async: true
-  import ExPact.ProviderCase
+  use ExPact.ProviderCase
 
   setup do
     bypass = Bypass.open(port: 1234)

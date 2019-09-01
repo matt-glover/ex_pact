@@ -1,6 +1,6 @@
 defmodule ProviderCaseV2Test do
   use ExUnit.Case, async: true
-  import ExPact.ProviderCase
+  use ExPact.ProviderCase, port: 1235
 
   setup do
     # TODO: Do something like this https://github.com/elixir-lang/elixir/blob/master/lib/ex_unit/lib/ex_unit/case.ex#L216-L223
@@ -17,12 +17,10 @@ defmodule ProviderCaseV2Test do
   honours_pact_with("266_provider", "test_consumer", "./test/pacts/v2-example-pact.json")
 
   defp mock_webserver(bypass) do
-    Bypass.stub(bypass, "GET", "/mallory", fn conn ->
-      %{"name" => "ron", "status" => "good"} = URI.decode_query(conn.query_string)
-
+    Bypass.stub(bypass, "GET", "/idm/user", fn conn ->
       conn
       |> Plug.Conn.resp(200, ~s("That is some good Mallory."))
-      |> Plug.Conn.put_resp_content_type("text/html")
+      |> Plug.Conn.put_resp_content_type("application/json")
     end)
   end
 end
